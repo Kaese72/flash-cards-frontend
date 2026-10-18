@@ -20,6 +20,11 @@ export function getRandomCard(setId) {
   return fetch(`${apiBase}/api/cards/random${query}`).then(asJson)
 }
 
+export function getStats(setId) {
+  const query = setId ? `?setId=${encodeURIComponent(setId)}` : ''
+  return fetch(`${apiBase}/api/cards/stats${query}`).then(asJson)
+}
+
 export function submitAnswer({ id, setId, correct, filterSetId }) {
   return fetch(`${apiBase}/api/cards/answer`, {
     method: 'POST',

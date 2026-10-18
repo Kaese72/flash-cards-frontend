@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 
 const props = defineProps({
-  // { prompt, front, back }
+  // { prompt, front, back, language, status }
   card: { type: Object, required: true },
 })
 
@@ -16,6 +16,8 @@ const incoming = ref(null)
 const isOpen = ref(false)
 
 const FLAP_TRANSITION_MS = 600
+
+const STATUS_LABELS = { new: 'New', retry: 'Retry', review: 'Review' }
 
 function open() {
   if (!isOpen.value) isOpen.value = true
@@ -53,6 +55,9 @@ watch(
 <template>
   <div class="book">
     <div class="prompt-card" :class="{ covered: !isOpen }" @click="open">
+      <span v-if="STATUS_LABELS[displayed.status]" class="status" :class="displayed.status">
+        {{ STATUS_LABELS[displayed.status] }}
+      </span>
       <p class="prompt">{{ displayed.prompt }}</p>
       <p class="content">{{ displayed.front }}</p>
       <button
@@ -74,6 +79,13 @@ watch(
         </div>
       </div>
       <div class="face prompt-preview" :class="{ covered: isOpen }" @click="open">
+        <span
+          v-if="STATUS_LABELS[(incoming ?? displayed).status]"
+          class="status"
+          :class="(incoming ?? displayed).status"
+        >
+          {{ STATUS_LABELS[(incoming ?? displayed).status] }}
+        </span>
         <p class="prompt">{{ (incoming ?? displayed).prompt }}</p>
         <p class="content">{{ (incoming ?? displayed).front }}</p>
         <button
@@ -139,6 +151,33 @@ watch(
   line-height: 1;
   cursor: pointer;
   padding: 0.25rem;
+}
+
+.status {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status.new {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status.retry {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status.review {
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 .flap {

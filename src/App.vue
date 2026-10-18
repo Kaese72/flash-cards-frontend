@@ -3,13 +3,15 @@ import { ref, onMounted } from 'vue'
 import FlashCard from './components/FlashCard.vue'
 import DeckSelect from './components/DeckSelect.vue'
 import UploadForm from './components/UploadForm.vue'
-import { getSets, getRandomCard, submitAnswer } from './api.js'
+import ProgressBar from './components/ProgressBar.vue'
+import { getSets, getRandomCard, getStats, submitAnswer } from './api.js'
 
 // 'select' (choose a deck) | 'study' (flashcards) | 'upload'
 const view = ref('select')
 const sets = ref([])
 const selectedSetId = ref('')
 const card = ref(null)
+const stats = ref(null)
 const error = ref(null)
 
 async function loadSets() {
@@ -19,8 +21,12 @@ async function loadSets() {
 async function loadCard() {
   error.value = null
   card.value = null
+  stats.value = null
   try {
-    card.value = await getRandomCard(selectedSetId.value)
+    ;[card.value, stats.value] = await Promise.all([
+      getRandomCard(selectedSetId.value),
+      getStats(selectedSetId.value),
+    ])
   } catch (e) {
     error.value = e.message
   }
@@ -54,6 +60,7 @@ async function onAnswer(correct) {
       correct,
       filterSetId: selectedSetId.value,
     })
+    stats.value = await getStats(selectedSetId.value)
   } catch (e) {
     error.value = e.message
   }
@@ -83,6 +90,7 @@ onMounted(loadSets)
 
     <template v-else-if="view === 'study'">
       <h1>Flash Cards</h1>
+      <ProgressBar v-if="stats" :stats="stats" />
       <p v-if="error" class="error">{{ error }}</p>
       <FlashCard v-if="card" :card="card" @answer="onAnswer" />
       <p v-else-if="!error">Loading…</p>
